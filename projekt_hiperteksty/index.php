@@ -1,86 +1,110 @@
+<?php
+require_once ("connect.php");
+require_once ("function.php");
+session_start();
+
+if (isset($_SESSION['login_active'])) {
+  header("Location: main.php");
+  exit();
+} else {
+
+  if (isset($_POST['login'])) {
+    $email = santize($_POST['email']);
+    $inputpassword = santize($_POST['password']);
+    $password = md5($inputpassword);
+
+    $sql = "SELECT * FROM users WHERE email = '$email' AND password = '$password'";
+    $result = mysqli_query($conn, $sql);
+
+    if (mysqli_num_rows($result) > 0) {
+      while ($row = mysqli_fetch_assoc($result)) {
+        $_SESSION['login_active'] = [$row["name"], $row["email"]];
+        $_SESSION['user_id'] = $row["id"];
+        $_SESSION['msg'] = "Witamy w Studiquiz";
+        $_SESSION['class'] = "text-bg-success";
+        header("Location: main.php");
+        exit();
+      }
+    } else {
+      $_SESSION['msg'] = "Sprawdź maila oraz hasło";
+      $_SESSION['class'] = "text-bg-danger";
+      header("Location: index.php");
+      exit();
+    }
+  }
+}
+
+?>
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ciekawostki Star Wars</title>
-    <link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Studiquiz</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
-    <header>
-        <h1>Ciekawostki ze Świata Star Wars</h1>
-    </header>
+  <section class="main-section">
+    <div class="container">
 
-    <nav>
-        <ul>
-            <li><a href="#intro">Wprowadzenie</a></li>
-            <li><a href="#characters">Postacie</a></li>
-            <li><a href="#planets">Planety</a></li>
-            <li><a href="#gallery">Galeria</a></li>
-            <li><a href="#comments">Komentarze</a></li>
-        </ul>
-    </nav>
-
-    <section id="intro">
-        <h2>Wprowadzenie</h2>
-        <p>Świat Star Wars, znany również jako Gwiezdne Wojny, to epicka saga stworzona przez George'a Lucasa. Zawiera ona szereg filmów, książek, gier i innych mediów, które rozwijają ten fascynujący wszechświat. Od pierwszego filmu wydanego w 1977 roku, Star Wars stał się jednym z najbardziej ikonicznych uniwersów w historii popkultury.</p>
-    </section>
-
-    <section id="characters">
-        <h2>Postacie</h2>
-        <div class="character">
-            <img src="image2.png" alt="Luke Skywalker">
-            <div class="description">
-                <h3>Luke Skywalker</h3>
-                <p>Luke Skywalker jest synem Anakina Skywalkera i Jedi, który odgrywał kluczową rolę w walce przeciwko Imperium Galaktycznemu.</p>
+      <?php if (isset($_SESSION['msg'])): ?>
+        <div class="toast-container position-fixed bottom-0 end-0 p-3">
+          <div class="toast fade show" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header <?php echo $_SESSION['class']; ?>">
+              <strong class="me-auto">Powiadomienie</strong>
+              <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>          `
             </div>
-        </div>
-        <!-- Analogicznie dla innych postaci -->
-    </section>
-
-    <section id="planets">
-        <h2>Planety</h2>
-        <div class="planet">
-            <img src="image3.jpg" alt="Tatooine">
-            <div class="description">
-                <h3>Tatooine</h3>
-                <p>Tatooine to pustynna planeta, na której rozpoczyna się przygoda Luke'a Skywalkera.</p>
+            <div class="toast-body">
+              <?php
+              $message = $_SESSION['msg'];
+              unset($_SESSION['msg']);
+              echo $message;
+              ?>
             </div>
+          </div>
         </div>
-        <!-- Analogicznie dla innych planet -->
-    </section>
+      <?php endif; ?>
 
-    <section id="gallery">
-        <h2>Galeria</h2>
-        <div class="slider">
-            <div class="slide"><img src="images/image1.png" alt="Napis"></div>
-            <div class="slide"><img src="images/image2.png" alt="Luke Skywalker"></div>
-            <div class="slide"><img src="images/image3.jpg" alt="Tattoine"></div>
+      <div class="row justify-content-center align-items-center" style="height:100vh;">
+        <div class="col-md-7 col-lg-4">
+          <div class="box rounded">
+            <div class="img"></div>
+            <div class="login-box p-5">
+              <h2 class="pb-4">Witamy serdecznie</h2>
+              <form action="" method="post">
+                <div class="mb-4">
+                  <input type="email" class="form-control" placeholder="Wpisz swój adres e-mail" name="email">
+                </div>
+                <div class="mb-4">
+                  <input type="password" class="form-control" placeholder="Wpisz swoje hasło" name="password">
+                </div>
+                <div class="d-grid gap-2">
+                  <button type="submit" class="btn btn-primary" name="login">Zaloguj się </button>
+                </div>
+              </form>
+
+              <div class="py-4 text-center">
+                Dołącz do nas, <a href="signup.php" class="link">Zarejestruj sie</a>
+              </div>
+
+            </div>
+          </div>
         </div>
-        <button class="prev" onclick="prevSlide()">&#10094;</button>
-        <button class="next" onclick="nextSlide()">&#10095;</button>
-    </section>
+      </div>
+    </div>
+  </section>
 
-    <section id="comments">
-        <h2>Komentarze</h2>
-        <form id="comment-form" action="index.php" method="post">
-            <label for="name">Imię:</label>
-            <input type="text" id="name" name="name" required>
-            <label for="comment">Komentarz:</label>
-            <textarea id="comment" name="comment" rows="4" required></textarea>
-            <input type="submit" name="submit" value="Dodaj Komentarz">
-        </form>
-        <div id="comments-container">
-            <!-- Zawartość sekcji komentarzy -->
-            <?php include 'display_comments.php'; ?>
-        </div>
-    </section>
 
-    <footer>
-        <p>&copy; 2024 Ciekawostki Star Wars</p>
-    </footer>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+    crossorigin="anonymous"></script>
 
-    
-    <script src="jss/script.js"></script>
 </body>
+
 </html>
